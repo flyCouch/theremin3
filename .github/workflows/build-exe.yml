@@ -1,1 +1,25 @@
 
+name: Build Windows EXE
+on: [push]
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install pyinstaller pygame sounddevice numpy
+      - run: pyinstaller --onefile --windowed --name noteStudy33 theremin.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: noteStudy33.exe
+          path: dist/noteStudy33.exe
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v1.0-${{ github.run_number }}
+          name: noteStudy33 Build ${{ github.run_number }}
+          files: dist/noteStudy33.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
