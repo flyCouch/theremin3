@@ -2,8 +2,6 @@ name: Build Windows EXE
 on: [push]
 permissions:
   contents: write
-env:
-  EXE_NAME: noteStudy34
 jobs:
   build:
     runs-on: windows-latest
@@ -13,14 +11,14 @@ jobs:
         with:
           python-version: '3.11'
       - run: pip install pyinstaller pygame sounddevice numpy
-      - run: pyinstaller --onefile --windowed --name ${{ env.EXE_NAME }} theremin.py
+      - run: pyinstaller --onefile --windowed --name noteStudy33 theremin.py
       - uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.EXE_NAME }}.exe
-          path: dist/${{ env.EXE_NAME }}.exe
+          name: noteStudy33.exe
+          path: dist/noteStudy33.exe
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v1.0-${{ github.run_number }}
-          name: ${{ env.EXE_NAME }} Build ${{ github.run_number }}
-          files: dist/${{ env.EXE_NAME }}.exe
+          name: noteStudy33 Build ${{ github.run_number }}
+          files: dist/noteStudy33.exe
