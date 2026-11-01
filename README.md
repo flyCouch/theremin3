@@ -29,4 +29,4 @@ Hardware-feel theremin for Linux Mint with joystick + mouse, scale quantization,
 
 - `sounddevice` OutputStream on device 20 (pulse) - 48000Hz, 2048 block, latency high
 - True drone callback with smooth freq/vol interpolation - no clicks
-- LOG vol for natural loudness
+- LOG vol for natural loudness.
