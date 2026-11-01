@@ -1,4 +1,13 @@
-# theremin3 - 7-Octave Microtonal Theremin Workbench
+# Theremin Game
+
+### 🎮 Download Latest Windows EXE:
+**[⬇️ CLICK HERE TO DOWNLOAD theremin2.exe](https://github.com/flyCouch/theremin3/releases/latest/download/theremin2.exe)**
+
+No Python needed - just download and double-click!
+
+---
+
+#Theremin3 - 7-Octave Microtonal Theremin Workbench
 
 Hardware-feel theremin for Linux Mint with joystick + mouse, scale quantization, and historical temperaments.
 
