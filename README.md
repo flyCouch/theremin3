@@ -1,10 +1,4 @@
-# Theremin Game
-
-**[⬇️ CLICK HERE TO DOWNLOAD noteStudy33.exe](https://github.com/flyCouch/theremin3/releases/latest/download/noteStudy33.exe)**
-
-No Python needed - just download and double-click!
-
----
+Windows Peeps, look to the right to see releases.
 
 #Theremin3 - 7-Octave Microtonal Theremin Workbench
 
