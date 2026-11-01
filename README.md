@@ -1,7 +1,7 @@
 # Theremin Game
 
 ### 🎮 Download Latest Windows EXE:
-**[⬇️ CLICK HERE TO DOWNLOAD noteStudy33.exe](https://github.com/flyCouch/theremin2/releases/latest/download/theremin2.exe)**
+**[⬇️ CLICK HERE TO DOWNLOAD noteStudy33.exe](https://github.com/flyCouch/theremin3/releases/latest/download/theremin3.exe)**
 
 No Python needed - just download and double-click!
 
