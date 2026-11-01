@@ -9,17 +9,20 @@ jobs:
         with:
           python-version: '3.11'
       - run: pip install pyinstaller pygame sounddevice numpy
-      - run: pyinstaller --onefile --windowed --name noteStudy33 --hidden-import=pygame --hidden-import=sounddevice --hidden-import=numpy theremin.py
+      - run: |
+          if (Test-Path theremin.py) { pyinstaller --onefile --windowed --name noteStudy33 --hidden-import=pygame --hidden-import=sounddevice --hidden-import=numpy theremin.py }
+          elseif (Test-Path noteStudy33.py) { pyinstaller --onefile --windowed --name noteStudy33 --hidden-import=pygame --hidden-import=sounddevice --hidden-import=numpy noteStudy33.py }
+          else { Get-ChildItem *.py; exit 1 }
       - uses: actions/upload-artifact@v4
         with:
-          name: theremin2.exe
-          path: dist/theremin2.exe
+          name: noteStudy33.exe
+          path: dist/noteStudy33.exe
       - name: Create Release
         uses: softprops/action-gh-release@v1
         if: github.ref == 'refs/heads/main'
         with:
           tag_name: v1.0-${{ github.run_number }}
-          name: Theremin v1.0 Build ${{ github.run_number }}
+          name: noteStudy33 v1.0 Build ${{ github.run_number }}
           files: dist/noteStudy33.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
