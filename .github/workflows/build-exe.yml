@@ -14,3 +14,12 @@ jobs:
         with:
           name: theremin2.exe
           path: dist/theremin2.exe
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        if: github.ref == 'refs/heads/main'
+        with:
+          tag_name: v1.0-${{ github.run_number }}
+          name: Theremin v1.0 Build ${{ github.run_number }}
+          files: dist/theremin2.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
