@@ -11,14 +11,14 @@ jobs:
         with:
           python-version: '3.11'
       - run: pip install pyinstaller pygame sounddevice numpy
-      - run: pyinstaller --onefile --windowed --name noteStudy33 theremin.py
+      - run: pyinstaller --onefile --windowed --name noteStudy39 python/noteStudy39.py
       - uses: actions/upload-artifact@v4
         with:
-          name: noteStudy33.exe
-          path: dist/noteStudy33.exe
+          name: noteStudy39.exe
+          path: dist/noteStudy39.exe
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v1.0-${{ github.run_number }}
-          name: noteStudy33 Build ${{ github.run_number }}
-          files: dist/noteStudy33.exe
+          name: noteStudy39 Build ${{ github.run_number }}
+          files: dist/noteStudy39.exe
