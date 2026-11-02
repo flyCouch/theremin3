@@ -1,0 +1,22 @@
+# In SevenOctaveMintWorkbench __init__ add:
+self.last_mouse_time = 0
+
+# Replace on_gliss_drag with:
+    def on_gliss_drag(self, event):
+        self.last_mouse_time = time.time()
+        w=self.gliss_canvas.winfo_width() or 1800; h=self.gliss_canvas.winfo_height() or 110
+        norm=max(0,min(1,event.x/float(w)))
+        vol = 1.0 - (event.y / float(h)); vol = max(0.0,min(1.0,vol))
+        freq,midi,qs=self.freq_from_norm(norm, force_quantize=True)
+        self.gliss_canvas.delete("all"); w2=self.gliss_canvas.winfo_width() or 1800
+        self.gliss_canvas.create_line(20,55,w2-20,55, fill="#00adb5", width=4)
+        self.gliss_canvas.create_line(event.x,15,event.x,90, fill="#00ff88", width=5, tags="cursor") # GREEN = mouse
+        note_name = f"{NOTE_NAMES[int(midi)%12]}{int(midi)//12-1}" if qs else f"{freq:.1f}Hz"
+        self.gliss_canvas.create_text(event.x, 10, text=note_name, fill="#ffffff", font=("Consolas",12,"bold"), tags="cursor")
+        self.readout_label.config(text=f"MOUSE {freq:.1f}Hz {note_name} vol {vol:.2f}")
+        if vol < 0.02: stop_sustained()
+        else: play_sustained(freq, vol)
+
+# And in joystick_loop, add at top of try:
+        if time.time() - self.last_mouse_time < 1.5:
+            time.sleep(0.02); continue
