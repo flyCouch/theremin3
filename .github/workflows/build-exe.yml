@@ -1,28 +1,46 @@
 name: Build Windows EXE
-on: [push]
+
+on:
+  push:
+    paths:
+      - 'python/noteStudy*.py'
+  workflow_dispatch:  # <- BIG ONE: adds a "Run workflow" button in GitHub UI
+
 permissions:
   contents: write
+
 jobs:
   build:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+      
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: pip install pyinstaller pygame sounddevice numpy
-      - run: |
+          
+      - name: Install deps
+        run: pip install pyinstaller pygame sounddevice numpy
+        
+      - name: Build latest exe
+        run: |
           $latest = Get-ChildItem python/noteStudy*.py | Sort-Object Name | Select-Object -Last 1
           echo "Building $latest"
           pyinstaller --onefile --windowed --name $latest.BaseName $latest.FullName
           echo "EXE_NAME=$($latest.BaseName).exe" >> $env:GITHUB_ENV
+          echo "BASE_NAME=$($latest.BaseName)" >> $env:GITHUB_ENV
         shell: powershell
-      - uses: actions/upload-artifact@v4
+        
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ env.EXE_NAME }}
           path: dist/${{ env.EXE_NAME }}
-      - uses: softprops/action-gh-release@v1
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
         with:
           tag_name: v1.0-${{ github.run_number }}
-          name: ${{ env.EXE_NAME }} Build ${{ github.run_number }}
+          name: ${{ env.BASE_NAME }} Build ${{ github.run_number }}
           files: dist/${{ env.EXE_NAME }}
+          generate_release_notes: true  # auto lists your changes!
