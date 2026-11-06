@@ -23,3 +23,19 @@ Hardware-feel theremin for Linux Mint with joystick + mouse, scale quantization,
 - `sounddevice` OutputStream on device 20 (pulse) - 48000Hz, 2048 block, latency high
 - True drone callback with smooth freq/vol interpolation - no clicks
 - LOG vol for natural loudness.
+
+
+
+Now it's a waiting game for the Mac test. The Mac one will be the fussy one, so give your friend's friend a heads-up - it will NOT just double-click and run like Windows.
+Forward them this:
+Mac test steps:
+Download the noteStudy43-macOS.zip from the Release, not the .exe
+Unzip it - you'll get noteStudy43.app
+Don't double-click it first time. Right-click > Open
+macOS will say "unverified developer" - click Open again in that popup
+If it asks for Microphone access, click Allow - it needs that for sounddevice
+If it opens and runs like the Windows version, we're golden.
+What to ask them to report back:
+Did it open at all, or did it bounce and quit?
+Did the audio / sound part work?
+Any popup about "damaged" or "can't be opened"? That one means Gatekeeper blocked it and we need to add a signing step.
