@@ -1,4 +1,4 @@
-Windows Peeps, look to the right to see releases.
+Windows/Mac/Linux Peeps, look to the right to see releases.
 
 #Theremin3 - 7-Octave Microtonal Theremin Workbench
 
