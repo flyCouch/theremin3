@@ -6,6 +6,7 @@ App will be swichable between the two versions, live.
 The idea is simple. The teacher runs the Conductor's copy. The kids run the Kids copy. They connect over WiFi. The teacher controls everything, the kids just follow.
 Conductor's Copy - built for speed:
 Teacher picks key, temperament, tuning, and scale in one click, not in menus
+Somehow incorporate circle of keys.
 Preset buttons for common classroom setups, for example:
 Pentatonic + Just - easiest, choir sound in minutes
 Major + Equal - standard school sound
