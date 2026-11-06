@@ -39,3 +39,41 @@ What to ask them to report back:
 Did it open at all, or did it bounce and quit?
 Did the audio / sound part work?
 Any popup about "damaged" or "can't be opened"? That one means Gatekeeper blocked it and we need to add a signing step.
+
+## Linux - Ubuntu / Mint
+
+### Install
+
+1. Go to **Releases** on the right side of this page
+2. Download the newest file that ends in `-linux.tar.gz`
+   - Example: `noteStudy43-linux.tar.gz`
+3. Find the downloaded file in your Downloads folder
+4. Right-click it > **Extract Here**
+   - You will get a file with no extension, e.g. `noteStudy43`
+
+### Run
+
+**Option 1 - Double-click (easiest):**
+Double-click the extracted `noteStudy43` file.
+If it asks "Do you want to run this?", click **Run**.
+
+**Option 2 - Terminal (shows errors if it fails):**
+1. Right-click in the folder where you extracted it > **Open in Terminal**
+2. Type:
+```bash
+./noteStudy43
+Press Enter.
+If it won't run
+1. "Execute as program" is off:
+Right-click the file > Properties > Permissions > tick Allow executing file as program.
+Or in terminal:
+bash
+chmod +x noteStudy43
+2. It does nothing when you double-click:
+Run it from terminal with Option 2 above to see the error. Double-click hides errors.
+3. GLIBC_2.38 not found error:
+You have an old download. Delete it and download the newest Linux release. The current build is made for Ubuntu 22.04 / Mint 21 and newer.
+4. No sound / mic not working:
+Make sure your mic is not muted in Sound Settings, and close any other app using the mic (Zoom, browser, etc.), then start the app again.
+Uninstall
+Just delete the noteStudy43 file and the .tar.gz file. Nothing else is installed on your system.
