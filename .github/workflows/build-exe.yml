@@ -107,5 +107,3 @@ jobs:
           name: ${{ env.BASE_NAME }} Linux Build ${{ github.run_number }}
           files: dist/${{ env.BASE_NAME }}-linux.tar.gz
           generate_release_notes: true
-          generate_release_notes: trueOS.zip
-          generate_release_notes: true
