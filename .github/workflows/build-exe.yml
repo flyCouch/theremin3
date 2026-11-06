@@ -1,9 +1,11 @@
-name: Build Windows EXE + Mac APP
+name: Build Windows + Mac + Linux
 
 on:
   push:
     paths:
       - 'python/noteStudy*.py'
+      - '.github/workflows/*.yml'
+      - '.github/workflows/*.yaml'
   workflow_dispatch:
 
 permissions:
@@ -56,7 +58,6 @@ jobs:
           BASE=$(basename "$LATEST" .py)
           pyinstaller --onefile --windowed --name "$BASE" "$LATEST"
           echo "BASE_NAME=$BASE" >> $GITHUB_ENV
-          # Mac makes a .app folder, zip it for release
           cd dist && zip -r "$BASE-macOS.zip" "$BASE.app" && cd ..
         shell: bash
       - name: Upload artifact
@@ -70,4 +71,40 @@ jobs:
           tag_name: v1.0-${{ github.run_number }}-macos
           name: ${{ env.BASE_NAME }} Mac Build ${{ github.run_number }}
           files: dist/${{ env.BASE_NAME }}-macOS.zip
+          generate_release_notes: true
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install system deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libasound2-dev libsdl2-dev libsdl2-mixer-2.0-0 libportaudio2
+      - name: Install deps
+        run: pip install pyinstaller pygame sounddevice numpy
+      - name: Build latest binary
+        run: |
+          LATEST=$(ls python/noteStudy*.py | sort | tail -n 1)
+          echo "Building $LATEST"
+          BASE=$(basename "$LATEST" .py)
+          pyinstaller --onefile --windowed --name "$BASE" "$LATEST"
+          echo "BASE_NAME=$BASE" >> $GITHUB_ENV
+          cd dist && tar -czf "$BASE-linux.tar.gz" "$BASE" && cd ..
+        shell: bash
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.BASE_NAME }}-linux.tar.gz
+          path: dist/${{ env.BASE_NAME }}-linux.tar.gz
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v1.0-${{ github.run_number }}-linux
+          name: ${{ env.BASE_NAME }} Linux Build ${{ github.run_number }}
+          files: dist/${{ env.BASE_NAME }}-linux.tar.gz
+          generate_release_notes: trueOS.zip
           generate_release_notes: true
