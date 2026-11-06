@@ -1,0 +1,28 @@
+Future Plans: Conductor + Kids
+What we have now:
+One copy, one screen. Teacher picks key, temperament, tuning, and scale with the mouse. Kids follow with mouse or joystick, match with their voice, and stay in tune because the scale and chord chart keep it melodic.
+What is coming next: Conductor's Copy + Kids Copy
+App will be swichable between the two versions, live.
+The idea is simple. The teacher runs the Conductor's copy. The kids run the Kids copy. They connect over WiFi. The teacher controls everything, the kids just follow.
+Conductor's Copy - built for speed:
+Teacher picks key, temperament, tuning, and scale in one click, not in menus
+Preset buttons for common classroom setups, for example:
+Pentatonic + Just - easiest, choir sound in minutes
+Major + Equal - standard school sound
+Blues + Just - for melody work
+Chord chart built in. Teacher clicks a chord, all Kids copies jump to that chord
+One button to change key for the whole room. No need to walk around and fix 20 computers
+Mute / solo, volume, and tempo from the Conductor screen
+Kids Copy - built to not get lost:
+Automatically follows the Conductor's key, temperament, tuning, and scale
+Kid cannot accidentally change key and go out of tune with the room
+Mouse left-right = pitch, up-down = volume. Joystick works the same if they have one
+Screen shows only what they need: their note, their chord tone, and where the teacher is pointing
+Voice matching stays the same: hear the note on the computer, sing the note, stay in tune
+Why WiFi, why this way:
+Teacher does not have to set up 20 computers one by one
+If the teacher changes key mid-song, the whole room changes together, instantly
+Kids stay focused on singing and following, not on settings
+No account, no cloud, no charge. Just local WiFi in the classroom
+Goal:
+A teacher walks in, opens Conductor, clicks one preset, kids open Kids copy, and in under a minute the whole room is singing in tune together as a choir, with no cacophony, even if none of them have ever read music.
