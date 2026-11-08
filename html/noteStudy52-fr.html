@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>noteStudy52 - Une voix, Clavier libre, Notes rapides</title>
+<style>
+  *{box-sizing:border-box} body{font-family:Arial,sans-serif;margin:0;background:#f2f2f2;color:#111}
+  .wrap{max-width:1450px;margin:0 auto;padding:12px}
+  .card{background:#fff;border:1px solid #ddd;border-radius:10px;padding:12px;margin-bottom:10px}
+  .card h3{margin:0 0 8px;font-size:14px}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  label{font-size:13px} select,input[type=checkbox]{font-size:14px;padding:6px;border-radius:6px;border:1px solid #aaa}
+  button{font-size:14px;padding:8px 12px;border-radius:8px;border:1px solid #999;background:#eee;cursor:pointer}
+  button.active{background:#ffd700}
+  .green{color:#007700;font-weight:bold;font-size:12px}
+  .muted{color:#555;font-size:12px}
+  #kb{width:100%;height:180px;background:#1a1a1a;border-radius:8px;touch-action:none;cursor:pointer;display:block}
+  #gliss{width:100%;height:95px;background:#0f0f1a;border-radius:8px;touch-action:none;cursor:pointer;display:block}
+  .chordBox{flex:1;min-width:260px;background:#f7f7f7;border:1px solid #ddd;border-radius:8px;padding:8px}
+  .chordNotes{font-family:Consolas,monospace;font-size:18px;font-weight:bold}
+  .chordComment{color:#007700;font-style:italic}
+  table{width:100%;border-collapse:collapse;font-family:Consolas,monospace;font-size:13px}
+  th,td{border-bottom:1px solid #eee;padding:5px;text-align:center}
+  th{background:#eee}
+  .badge{display:inline-block;padding:2px 8px;border-radius:20px;background:#eee;font-size:12px;font-weight:bold}
+  .badge.js{background:#ffe0e8;color:#900}
+  .badge.mouse{background:#d9ffe6;color:#060}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="row"><b>noteStudy52 - Français</b><span class="badge mouse">SOURIS par défaut</span><span class="badge js" id="joyBadge">Pas de manette</span><span class="green">Notes rapides : OUI - Clavier : Tenir la souris, glisser, Y = volume - Relâcher pour arrêter - Une seule voix</span></div>
+    <div class="row" style="margin-top:8px">
+      <label>Tonique : <select id="rootSel"></select></label>
+      <label>Gamme : <select id="scaleSel"></select></label>
+      <label>Tempérament : <select id="tempSel"></select></label>
+      <label>Réf : <select id="refSel"><option>415 Hz</option><option>432 Hz</option><option>435 Hz</option><option selected>440 Hz</option><option>442 Hz</option><option>528 Hz</option></select></label>
+      <label><input type="checkbox" id="chordOnly"> Accords seulement - Gliss + Manette seulement, le clavier reste LIBRE pour jouer n'importe quelle note</label>
+    </div>
+    <div class="row" style="margin-top:6px"><a href="noteStudy52.html">English version</a><span class="muted"> | Version française</span></div>
+  </div>
+
+  <div class="card">
+    <h3>Tableau des accords - Choisir dans la liste, ou utiliser les accords rapides</h3>
+    <div class="row">
+      <label>Accord : <select id="chordSel" style="min-width:280px;font-weight:bold"></select></label>
+      <span>Rapides :</span>
+      <button data-quick="I">I</button><button data-quick="IV">IV</button><button data-quick="V">V</button>
+      <span>Couleur :</span>
+      <button data-quick="vi">vi</button><button data-quick="Sus2">Sus2</button><button data-quick="Sus4">Sus4</button>
+      <div class="chordBox">
+        <div class="chordNotes" id="chordNotes">Aucun accord - gamme complète</div>
+        <div class="muted" id="chordDesc">Choisir un accord pour voir ses notes</div>
+        <div class="chordComment" id="chordComment">Choisir un accord pour voir ses notes</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Clavier 7 octaves - TOUJOURS LIBRE - Jouer n'importe quelle note, même hors accord - RAPIDE : Tenir la souris, glisser, Y = volume - BLEU = Tonique, JAUNE = Notes de l'accord</h3>
+    <canvas id="kb"></canvas>
+    <div class="muted">Haut du clavier = fort, bas = doux, volume logarithmique. Relâcher = arrêt immédiat.</div>
+  </div>
+
+  <div class="card">
+    <h3>Piste Gliss - SOURIS VERTE + MANETTE ROUGE - UNE SEULE VOIX, le dernier qui bouge fait le son</h3>
+    <canvas id="gliss"></canvas>
+    <div id="readout" style="font-family:Consolas,monospace;font-weight:bold;margin-top:6px">Glisser : gauche-droite = hauteur, haut-bas = volume | La manette fonctionne aussi</div>
+  </div>
+
+  <div class="card">
+    <h3>Détails - Développé</h3>
+    <div style="max-height:320px;overflow:auto"><table><thead><tr><th>Note</th><th>MIDI</th><th>Fréq.</th><th>Cents</th><th>Statut</th></tr></thead><tbody id="tableBody"></tbody></table></div>
+  </div>
+</div>
+
+<script>
+const NOTE_NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const BLACK=new Set([1,3,6,8,10]);
+const SCALE_MAP={"Chromatique (12 sons)":[0,1,2,3,4,5,6,7,8,9,10,11],"Majeur (Ionien)":[0,2,4,5,7,9,11],"Mineur naturel":[0,2,3,5,7,8,10],"Pentatonique majeur":[0,2,4,7,9],"Tons entiers":[0,2,4,6,8,10],"Blues":[0,3,5,6,7,10],"Pelog (Gamelan approx.)":[0,1,5,7,10],"Slendro (Gamelan approx.)":[0,2,5,7,9],"Hirajoshi (Japonais)":[0,2,3,7,8],"Raga Bhairav":[0,1,4,5,7,8,11],"OFF (Gliss)":[0,1,2,3,4,5,6,7,8,9,10,11]};
+const TEMP_MAP={"Tempérament égal (12-TET)":Array(12).fill(0),"Intonation juste (Ptolémaïque)":[0,-29,4,-6,-14,-2,-20,2,-12,16,-18,-10],"Tempérament pythagoricien":[0,4,8,-8,12,-4,16,2,6,10,-12,14],"Mésotonique au quart de comma":[0,-24,-7,10,-6,-27,-3,14,-13,4,-20,-10],"Werckmeister III":[0,-6,2,-4,4,-2,6,-2,2,4,-4,2],"19TET approx.":[0,3,6,9,13,16,19,22,25,28,31,34],"OFF":Array(12).fill(0)};
+const CHORD_TYPES={Majeur:[0,4,7],Mineur:[0,3,7],"Majeur 7":[0,4,7,11],"Mineur 7":[0,3,7,10],"Dominante 7":[0,4,7,10],Diminué:[0,3,6],Augmenté:[0,4,8],Sus2:[0,2,7],Sus4:[0,5,7],"Majeur 6":[0,4,7,9],"Mineur 6":[0,3,7,9],"Quinte (5)":[0,7]};
+const CHORD_DESC={Majeur:"Majeur - joyeux, maison",Mineur:"Mineur - triste, doux","Majeur 7":"Majeur 7 - jazzy, rêveur","Mineur 7":"Mineur 7 - doux","Dominante 7":"Dominante 7 - bluesy, veut résoudre",Diminué:"Diminué - tendu",Augmenté:"Augmenté - flottant",Sus2:"Sus2 - ouvert, sans tierce, aéré",Sus4:"Sus4 - suspendu, veut retomber sur majeur","Majeur 6":"Majeur 6 - doux","Mineur 6":"Mineur 6 - vieux film","Quinte (5)":"Quinte - juste tonique + quinte"};
+const DIATONIC=[["I",0,"Majeur"],["ii",2,"Mineur"],["iii",4,"Mineur"],["IV",5,"Majeur"],["V",7,"Majeur"],["vi",9,"Mineur"],["vii",11,"Diminué"]];
+const QUICK_COMMENTS={I:"La maison. Commencer ici, finir ici. Sûr.",IV:"La montée. Ça monte, ça s'ouvre.",V:"L'attraction. Veut retourner à la maison, à I.",vi:"Le triste. Doux, l'autre maison. La en Do.",Sus2:"Son ouvert. Ni majeur, ni mineur, juste aéré.",Sus4:"Son suspendu. Veut retomber sur I. Jouer Sus4 puis I."};
+
+function logVol(raw){ raw=Math.max(0,Math.min(1,raw)); return Math.pow(raw,1.6); }
+
+// --- Audio : une seule voix ---
+let actx=null, osc=null, gainNode=null, curFreq=440, curVol=0;
+function ensureAudio(){
+  if(actx) return;
+  actx=new (window.AudioContext||window.webkitAudioContext)();
+  osc=actx.createOscillator(); osc.type='sine'; osc.frequency.value=440;
+  gainNode=actx.createGain(); gainNode.gain.value=0;
+  osc.connect(gainNode); gainNode.connect(actx.destination); osc.start();
+}
+function playSustained(freq,vol){
+  ensureAudio(); if(actx.state==='suspended') actx.resume();
+  const t=actx.currentTime;
+  const target=Math.pow(Math.max(0,Math.min(1,vol)),2.2)*0.45;
+  osc.frequency.setTargetAtTime(freq,t,0.02);
+  gainNode.gain.setTargetAtTime(target,t,0.04);
+  curFreq=freq; curVol=vol;
+}
+function stopSustained(){ if(!actx) return; gainNode.gain.setTargetAtTime(0,actx.currentTime,0.04); curVol=0; }
+
+const $=id=>document.getElementById(id);
+const rootSel=$('rootSel'), scaleSel=$('scaleSel'), tempSel=$('tempSel'), refSel=$('refSel'), chordSel=$('chordSel'), chordOnly=$('chordOnly');
+NOTE_NAMES.forEach(n=>{let o=document.createElement('option');o.text=n;o.value=n;rootSel.appendChild(o);}); rootSel.value='C';
+Object.keys(SCALE_MAP).forEach(k=>{let o=document.createElement('option');o.text=k;scaleSel.appendChild(o);}); scaleSel.value='Majeur (Ionien)';
+Object.keys(TEMP_MAP).forEach(k=>{let o=document.createElement('option');o.text=k;tempSel.appendChild(o);}); tempSel.value='Tempérament égal (12-TET)';
+
+function getRoot(){return NOTE_NAMES.indexOf(rootSel.value);}
+function getRef(){return parseFloat(refSel.value);}
+function getChordLookup(){
+  const ro=getRoot(); const map={}; const items=[{display:"Aucun accord",pc:null}];
+  DIATONIC.forEach(([roman,off,ctype])=>{ const pc=(ro+off)%12; let letter=NOTE_NAMES[pc]+(ctype==="Diminué"?"dim":ctype==="Mineur"?"m":""); let display=`${letter}  (${roman} - ${ctype})`; map[display]={pc,intervals:CHORD_TYPES[ctype],ctype,desc:`${ctype} - ${CHORD_DESC[ctype]}`}; items.push({display,...map[display]}); });
+  ["Majeur 7","Mineur 7","Dominante 7","Sus2","Sus4","Majeur 6","Quinte (5)"].forEach(ctype=>{ const pc=ro; const suf={"Majeur 7":"maj7","Mineur 7":"m7","Dominante 7":"7",Sus2:"sus2",Sus4:"sus4","Majeur 6":"6","Quinte (5)":"5"}[ctype]; let letter=NOTE_NAMES[pc]+suf; let display=`${letter}  (${ctype} sur tonique)`; map[display]={pc,intervals:CHORD_TYPES[ctype],ctype,desc:`${ctype} - ${CHORD_DESC[ctype]}`}; items.push({display,...map[display]}); });
+  return {map,items};
+}
+function getCurrentChord(){ const sel=chordSel.value; if(sel==="Aucun accord") return null; const {map}=getChordLookup(); return map[sel]||null; }
+function getChordPCs(){ const c=getCurrentChord(); if(!c) return null; return new Set(c.intervals.map(t=>(c.pc+t)%12)); }
+function buildChordList(){
+  const {items}=getChordLookup(); const old=chordSel.value;
+  chordSel.innerHTML=""; items.forEach(it=>{let o=document.createElement('option');o.text=it.display;o.value=it.display;chordSel.appendChild(o);});
+  if([...chordSel.options].some(o=>o.value===old)) chordSel.value=old; else chordSel.value="Aucun accord";
+  const ro=getRoot();
+  document.querySelectorAll('[data-quick]').forEach(b=>{
+    const k=b.dataset.quick; let letter="";
+    if(k==="Sus2") letter=NOTE_NAMES[ro]+"sus2"; else if(k==="Sus4") letter=NOTE_NAMES[ro]+"sus4";
+    else { const d=DIATONIC.find(x=>x[0]===k); const pc=(ro+d[1])%12; letter=NOTE_NAMES[pc]+(d[2]==="Diminué"?"dim":d[2]==="Mineur"?"m":""); }
+    b.textContent=`${letter} (${k})`;
+  });
+}
+function calcFreq(noteIdx7){
+  const ro=getRoot(); const absS=noteIdx7+ro; const semi=absS%12; const ref=getRef(); const midi=24+absS; const cents=TEMP_MAP[tempSel.value][semi]; const base=ref*Math.pow(2,(midi-69)/12); const actual=base*Math.pow(2,cents/1200); return {freq:actual,cents,midi,absS};
+}
+function freqFromNorm(norm){
+  norm=Math.max(0,Math.min(1,norm)); const curved=Math.pow(norm,0.65); const ro=getRoot(); const ref=getRef();
+  if(scaleSel.value==="OFF (Gliss)" && tempSel.value==="OFF"){ const baseMidi=24+ro+curved*84; const f=ref*Math.pow(2,(baseMidi-69)/12); return {freq:f,midi:baseMidi,isStep:false}; }
+  const scale=SCALE_MAP[scaleSel.value]; const chordPCs=getChordPCs(); const allowed=[];
+  for(let i=0;i<84;i++){ const absS=i+ro; const degree=(absS-ro)%12; if(!scale.includes(degree)) continue; if(chordOnly.checked && chordPCs && !chordPCs.has(absS%12)) continue; allowed.push(i); }
+  const list=allowed.length?allowed:[...Array(84).keys()];
+  const idx=Math.max(0,Math.min(list.length-1, Math.floor(curved*(list.length-1))));
+  const ni=list[idx]; const c=calcFreq(ni); return {freq:c.freq,midi:c.midi,isStep:true};
+}
+
+// --- Clavier ---
+const kb=$('kb'), kctx=kb.getContext('2d');
+let kbPlaying=false, lastKbNote=null, lastMouseTime=0, mouseX=0.5, joyX=0, joyY=0;
+function resizeCanvas(c){ const r=c.getBoundingClientRect(); c.width=r.width*devicePixelRatio; c.height=r.height*devicePixelRatio; const ctx=c.getContext('2d'); ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0); return {w:r.width,h:r.height}; }
+function drawKB(){
+  const {w,h}=resizeCanvas(kb); kctx.clearRect(0,0,w,h);
+  const scale=SCALE_MAP[scaleSel.value]; const ro=getRoot(); const chordPCs=getChordPCs();
+  const whites=[]; for(let i=0;i<84;i++) if(!BLACK.has((i+ro)%12)) whites.push(i);
+  const ww=Math.max(16,(w-30)/whites.length); let xp=15;
+  window._kbRects=[];
+  whites.forEach(ki=>{ const c=calcFreq(ki); const rel=(c.absS-ro)%12; const act=scale.includes(rel); const isChord=chordPCs&&chordPCs.has(c.absS%12); const isTonic=(c.absS%12)===ro; let col=isTonic?"#4a90e2":isChord?"#ffd700":act?"#fff":"#444"; kctx.fillStyle=col; kctx.strokeStyle="#000"; kctx.lineWidth=isChord||isTonic?2:1; kctx.fillRect(xp,15,ww,150); kctx.strokeRect(xp,15,ww,150); kctx.fillStyle=isTonic?"#fff":"#000"; kctx.font="bold 7px Arial"; kctx.textAlign="center"; kctx.fillText(`${NOTE_NAMES[c.absS%12]}${Math.floor(c.midi/12)-1}`,xp+ww/2,130); window._kbRects.push({x:xp,y:15,w:ww,h:150,ki,black:false}); xp+=ww; });
+  let cur=15;
+  for(let i=0;i<84;i++){ const c=calcFreq(i); const sem=c.absS%12; if(!BLACK.has(sem)){cur+=ww; continue;} const rel=(c.absS-ro)%12; const act=scale.includes(rel); const isChord=chordPCs&&chordPCs.has(c.absS%12); const isTonic=(c.absS%12)===ro; let col=isTonic?"#2a5a9a":isChord?"#b8860b":act?"#111":"#2c2c2c"; const bx=cur-(ww*0.35); const bw=ww*0.7; kctx.fillStyle=col; kctx.strokeStyle=isTonic?"#4a90e2":isChord?"#ffd700":act?"#00ff00":"#777"; kctx.lineWidth=isChord||isTonic?2.5:1; kctx.fillRect(bx,15,bw,80); kctx.strokeRect(bx,15,bw,80); kctx.fillStyle=isTonic?"#fff":isChord?"#ffd700":act?"#00ff88":"#666"; kctx.font="bold 8px Arial"; kctx.fillText(`${NOTE_NAMES[sem]}${Math.floor(c.midi/12)-1}`,bx+bw/2,50); window._kbRects.push({x:bx,y:15,w:bw,h:80,ki:i,black:true}); }
+}
+function kbNoteAt(e){
+  const r=kb.getBoundingClientRect(); const x=e.clientX-r.left, y=e.clientY-r.top;
+  const sorted=[...window._kbRects].sort((a,b)=>(b.black?1:0)-(a.black?1:0));
+  for(const rr of sorted){ if(x>=rr.x&&x<=rr.x+rr.w&&y>=rr.y&&y<=rr.y+rr.h) return {ki:rr.ki,y}; }
+  return null;
+}
+function playKbNote(ki, y){
+  if(ki===null) return; if(ki===lastKbNote && kbPlaying) return;
+  lastKbNote=ki; kbPlaying=true; lastMouseTime=Date.now();
+  const c=calcFreq(ki); const raw=1-(y/180); const vol=logVol(raw);
+  playSustained(c.freq, vol);
+}
+kb.addEventListener('pointerdown', e=>{ kb.setPointerCapture(e.pointerId); ensureAudio(); kbPlaying=true; lastKbNote=null; const hit=kbNoteAt(e); if(hit) playKbNote(hit.ki, e.clientY-kb.getBoundingClientRect().top); });
+kb.addEventListener('pointermove', e=>{ if(!kbPlaying) return; const r=kb.getBoundingClientRect(); const y=e.clientY-r.top; const hit=kbNoteAt(e); if(!hit) return; if(hit.ki!==lastKbNote){ playKbNote(hit.ki, y); } else { const raw=1-(y/180); const vol=logVol(raw); const c=calcFreq(hit.ki); playSustained(c.freq, vol); } });
+function kbRelease(){ kbPlaying=false; lastKbNote=null; stopSustained(); }
+kb.addEventListener('pointerup', kbRelease); kb.addEventListener('pointercancel', kbRelease); kb.addEventListener('pointerleave', ()=>{ if(kbPlaying) kbRelease(); });
+
+// --- Gliss ---
+const gliss=$('gliss'), gctx=gliss.getContext('2d');
+function drawGliss(mouseNorm=null, joyNorm=null){
+  const {w,h}=resizeCanvas(gliss); gctx.clearRect(0,0,w,h);
+  gctx.strokeStyle="#00adb5"; gctx.lineWidth=4; gctx.beginPath(); gctx.moveTo(20,55); gctx.lineTo(w-20,55); gctx.stroke();
+  if(joyNorm!==null){ gctx.strokeStyle="#ff2e63"; gctx.lineWidth=3; gctx.beginPath(); gctx.moveTo(joyNorm*w,15); gctx.lineTo(joyNorm*w,90); gctx.stroke(); }
+  if(mouseNorm!==null){ gctx.strokeStyle="#00ff88"; gctx.lineWidth=5; gctx.beginPath(); gctx.moveTo(mouseNorm*w,15); gctx.lineTo(mouseNorm*w,90); gctx.stroke(); }
+}
+function onGliss(e){
+  ensureAudio(); lastMouseTime=Date.now(); const r=gliss.getBoundingClientRect(); const x=e.clientX-r.left, y=e.clientY-r.top; const norm=Math.max(0,Math.min(1,x/r.width)); mouseX=norm; const raw=1-(y/r.height); const vol=logVol(raw); const f=freqFromNorm(norm); drawGliss(norm, joyX); const name=f.isStep?`${NOTE_NAMES[Math.floor(f.midi)%12]}${Math.floor(f.midi/12)-1}`:`${f.freq.toFixed(1)}Hz`; $('readout').textContent=`SOURIS ${f.freq.toFixed(1)}Hz ${name} vol ${vol.toFixed(2)}  |  Souris verte, Manette rouge`; if(vol<0.02) stopSustained(); else playSustained(f.freq, vol);
+}
+gliss.addEventListener('pointerdown', e=>{ gliss.setPointerCapture(e.pointerId); onGliss(e); });
+gliss.addEventListener('pointermove', e=>{ if(e.buttons===1) onGliss(e); });
+gliss.addEventListener('pointerup', ()=>stopSustained());
+
+// --- Manette : Gamepad API, une seule voix, le dernier qui bouge gagne ---
+function pollGamepad(){
+  const pads=navigator.getGamepads?navigator.getGamepads():[];
+  let pad=null; for(const p of pads) if(p) {pad=p; break;}
+  const badge=$('joyBadge');
+  if(!pad){ badge.textContent="Pas de manette"; badge.className="badge js"; drawGliss(mouseX, null); requestAnimationFrame(pollGamepad); return; }
+  badge.textContent="Manette prête - Curseur rouge"; badge.className="badge js";
+  if(Date.now()-lastMouseTime < 1500){ requestAnimationFrame(pollGamepad); return; }
+  const rx=pad.axes[0]||0, ry=pad.axes[1]||0; joyX=(rx+1)/2; joyY=(ry+1)/2;
+  const f=freqFromNorm(joyX); const raw=1-joyY; const vol=logVol(raw);
+  if(vol<0.02) stopSustained(); else playSustained(f.freq, vol);
+  drawGliss(mouseX, joyX);
+  const name=f.isStep?`${NOTE_NAMES[Math.floor(f.midi)%12]}${Math.floor(f.midi/12)-1}`:`${f.freq.toFixed(1)}Hz`;
+  $('readout').textContent=`MANETTE ${f.freq.toFixed(1)}Hz ${name} vol ${vol.toFixed(2)}  |  Souris verte, Manette rouge`;
+  requestAnimationFrame(pollGamepad);
+}
+requestAnimationFrame(pollGamepad);
+
+// --- Tableau + accords ---
+function refresh(){
+  buildChordList();
+  const cur=getCurrentChord();
+  if(!cur){ $('chordNotes').textContent="Aucun accord - gamme complète"; $('chordDesc').textContent="Choisir un accord pour voir ses notes"; $('chordComment').textContent="Choisir un accord pour voir ses notes"; }
+  else { const names=cur.intervals.map(t=>NOTE_NAMES[(cur.pc+t)%12]); $('chordNotes').textContent=`${chordSel.value.split('  ')[0]}  =  ${names.join(' - ')}`; $('chordDesc').textContent=cur.desc; let comment="Essayer avec Accords seulement - on ne peut jouer que ces notes."; if(chordSel.value.includes("(I -")) comment=QUICK_COMMENTS.I; else if(chordSel.value.includes("(IV -")) comment=QUICK_COMMENTS.IV; else if(chordSel.value.includes("(V -")) comment=QUICK_COMMENTS.V; else if(chordSel.value.includes("(vi -")) comment=QUICK_COMMENTS.vi; else if(chordSel.value.includes("Sus2")) comment=QUICK_COMMENTS.Sus2; else if(chordSel.value.includes("Sus4")) comment=QUICK_COMMENTS.Sus4; $('chordComment').textContent=comment; }
+  drawKB(); drawGliss(mouseX, joyX);
+  const scale=SCALE_MAP[scaleSel.value]; const ro=getRoot(); const chordPCs=getChordPCs(); let html="";
+  for(let i=0;i<84;i++){ const c=calcFreq(i); const rel=(c.absS-ro)%12; let status="GRISÉ"; if((c.absS%12)===ro) status="TONIQUE"; else if(chordPCs&&chordPCs.has(c.absS%12)) status="ACCORD"; else if(scale.includes(rel)) status="ACTIF"; html+=`<tr><td>${NOTE_NAMES[c.absS%12]}${Math.floor(c.midi/12)-1}</td><td>${c.midi}</td><td>${c.freq.toFixed(2)}</td><td>${c.cents>=0?"+":""}${c.cents}</td><td>${status}</td></tr>`; }
+  $('tableBody').innerHTML=html;
+}
+function setQuick(k){
+  const {items}=getChordLookup();
+  for(const it of items){ if((k==="Sus2"||k==="Sus4") && it.display.includes(`(${k} sur tonique)`)){ chordSel.value=it.display; refresh(); return; } if(k!=="Sus2"&&k!=="Sus4"&&it.display.includes(`(${k} -`)){ chordSel.value=it.display; refresh(); return; } }
+}
+document.querySelectorAll('[data-quick]').forEach(b=>b.addEventListener('click',()=>{ ensureAudio(); setQuick(b.dataset.quick); }));
+[rootSel,scaleSel,tempSel,refSel,chordSel,chordOnly].forEach(el=>el.addEventListener('change',()=>{ refresh(); }));
+rootSel.addEventListener('change',()=>{ const old=chordSel.value; let roman=null; if(old.includes("(")){ try{roman=old.split("(")[1].split(" ")[0];}catch(e){} } buildChordList(); if(roman){ if(roman.startsWith("Sus")) setQuick(roman.includes("2")?"Sus2":"Sus4"); else setQuick(roman); } });
+window.addEventListener('resize', ()=>{ drawKB(); drawGliss(mouseX, joyX); });
+refresh();
+</script>
+</body>
+</html>
